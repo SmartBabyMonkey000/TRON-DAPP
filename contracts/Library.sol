@@ -1,4 +1,4 @@
-// SPDX-Licence-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 abstract contract Context {
@@ -69,8 +69,8 @@ contract Library is Owner {
     function borrowBook(uint256 _bookId, uint256 startTime, uint256 endTime) public payable returns (bool) {
         Book storage book = books[_bookId];
         require(book.valid == true, "This book is currently on loan");
-        require(_msgValue == book.price * _days(endTime - startTime), "Incorrect fund sent");
-        _sendTRX(book.owner, _msgValue);
+        require(_msgValue() == book.price * _days(startTime, endTime), "Incorrect fund sent");
+        _sendTRX(book.owner, _msgValue());
         _createTracking(_bookId, startTime, endTime);
 
         emit NewRental(_bookId, trackingId++);
@@ -78,8 +78,8 @@ contract Library is Owner {
         return true;
     }
 
-    function deleteBook(uint256 bookId) public returns (bool success) {
-        require(_msgSender() == books[bookId].owner || isOwner(),
+    function deleteBook(uint256 _bookId) public returns (bool success) {
+        require(_msgSender() == books[_bookId].owner || isOwner(),
                 "You are not authorized to delete this book");
         
         delete books[_bookId];
@@ -89,7 +89,7 @@ contract Library is Owner {
         return true;
     }
 
-    function days(uint256 startTime, uint256 endTime) internal pure return (uint256) {
+    function _days(uint256 startTime, uint256 endTime) internal pure returns (uint256) {
         if ((endTime - startTime) % uint256(86400) == 0 ) {
             return (endTime - startTime) / uint256(86400);
         } else {
@@ -101,8 +101,8 @@ contract Library is Owner {
         payable(address(uint160(receiver))).transfer(value);
     }
 
-    function _createTracking(uint256 bookId, uint256 startTime, uint256 endTime) {
-        trackingId[trackingId] = Tracking(_bookId, startTime, endTime, _msgSender());
+    function _createTracking(uint256 _bookId, uint256 startTime, uint256 endTime) internal {
+        trackings[trackingId] = Tracking(_bookId, startTime, endTime, _msgSender());
 
         Book storage book = books[_bookId];
 
