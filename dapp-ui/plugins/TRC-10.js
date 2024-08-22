@@ -1,4 +1,4 @@
-
+const tronWeb = require('tronweb')
 // -------- ISSUE -----------
 
 // curl -X POST  https://api.shasta.trongrid.io/wallet/createassetissue -d '{
